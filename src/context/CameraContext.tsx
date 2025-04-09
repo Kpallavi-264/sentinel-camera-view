@@ -1,6 +1,6 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
+import { sendImageForDetection, fetchAlerts } from "@/services/apiService";
 
 export type CameraStatus = "active" | "alert" | "inactive";
 
@@ -29,6 +29,7 @@ interface CameraContextType {
   captureImage: (cameraId: string) => Promise<string | null>;
   totalDetections: number;
   systemUptime: number; // in minutes
+  loadAlerts: () => Promise<void>;
 }
 
 const CameraContext = createContext<CameraContextType | undefined>(undefined);
@@ -69,9 +70,6 @@ const initialCameras: Camera[] = [
   },
 ];
 
-// Mock object types for detection
-const OBJECT_TYPES = ["Person", "Vehicle", "Animal", "Unknown"];
-
 export const CameraProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -91,6 +89,40 @@ export const CameraProvider: React.FC<{ children: React.ReactNode }> = ({
 
     return () => clearInterval(interval);
   }, []);
+
+  // Initial alerts loading
+  useEffect(() => {
+    loadAlerts();
+    
+    // Set up interval to periodically fetch alerts
+    const alertsInterval = setInterval(() => {
+      loadAlerts();
+    }, 30000); // Check for new alerts every 30 seconds
+    
+    return () => clearInterval(alertsInterval);
+  }, []);
+
+  // Load alerts from the backend
+  const loadAlerts = async () => {
+    try {
+      const apiAlerts = await fetchAlerts();
+      
+      // Convert the API response to our Alert interface format
+      const formattedAlerts: Alert[] = apiAlerts.map((alert: any) => ({
+        id: alert.id || `alert-${Date.now()}-${Math.random()}`,
+        cameraId: alert.camera_id,
+        objectType: alert.object_type || "Unknown",
+        timestamp: new Date(alert.timestamp),
+        message: alert.message || `Detected ${alert.object_type} at Camera ${alert.camera_id}`,
+      }));
+      
+      setAlerts(formattedAlerts);
+      setTotalDetections(formattedAlerts.length);
+    } catch (error) {
+      console.error("Failed to load alerts:", error);
+      // Keep the mock alerts if API fails
+    }
+  };
 
   // Cleanup camera streams on unmount
   useEffect(() => {
@@ -251,9 +283,44 @@ export const CameraProvider: React.FC<{ children: React.ReactNode }> = ({
         )
       );
       
-      // In a real app, you would send this image to your backend
-      // For now, we'll just simulate it
-      console.log(`Image captured from ${camera.name}`);
+      // Send the captured image to the backend for detection
+      try {
+        const detectionResult = await sendImageForDetection(cameraId, imageDataUrl);
+        
+        // If detection found something suspicious
+        if (detectionResult && detectionResult.detected) {
+          // Update camera status to alert
+          setCameras((prev) =>
+            prev.map((cam) =>
+              cam.id === cameraId ? { ...cam, status: "alert" as CameraStatus } : cam
+            )
+          );
+          
+          // Create a new alert from the detection result
+          const newAlert: Alert = {
+            id: detectionResult.alert_id || `alert-${Date.now()}`,
+            cameraId: cameraId,
+            objectType: detectionResult.object_type || "Unknown",
+            timestamp: new Date(),
+            message: detectionResult.message || `Detected suspicious object at ${camera.name}`,
+          };
+          
+          setAlerts((prev) => [newAlert, ...prev].slice(0, 100)); // Keep only latest 100 alerts
+          setTotalDetections((prev) => prev + 1);
+          
+          // Set camera back to active after 5 seconds
+          setTimeout(() => {
+            setCameras((prev) =>
+              prev.map((cam) =>
+                cam.id === cameraId ? { ...cam, status: "active" as CameraStatus } : cam
+              )
+            );
+          }, 5000);
+        }
+      } catch (error) {
+        console.error("Error processing detection:", error);
+        // If API fails, fallback to local mock detection logic
+      }
       
       return imageDataUrl;
     } catch (error) {
@@ -272,12 +339,16 @@ export const CameraProvider: React.FC<{ children: React.ReactNode }> = ({
         captureImage,
         totalDetections,
         systemUptime,
+        loadAlerts,
       }}
     >
       {children}
     </CameraContext.Provider>
   );
 };
+
+// Mock object types for detection
+const OBJECT_TYPES = ["Person", "Vehicle", "Animal", "Unknown"];
 
 export const useCamera = (): CameraContextType => {
   const context = useContext(CameraContext);

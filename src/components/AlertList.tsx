@@ -1,26 +1,58 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCamera } from "@/context/CameraContext";
-import { BellRing, Clock } from "lucide-react";
+import { BellRing, Clock, RefreshCw } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const AlertList: React.FC = () => {
-  const { alerts, cameras } = useCamera();
+  const { alerts, cameras, loadAlerts } = useCamera();
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const getCameraName = (cameraId: string) => {
     const camera = cameras.find((cam) => cam.id === cameraId);
     return camera ? camera.name : "Unknown Camera";
   };
+  
+  const handleRefreshAlerts = async () => {
+    try {
+      setIsLoading(true);
+      await loadAlerts();
+      toast.success("Alerts refreshed successfully");
+    } catch (error) {
+      toast.error("Failed to refresh alerts");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial load of alerts
+  useEffect(() => {
+    handleRefreshAlerts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Card className="h-full overflow-hidden">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center">
-          <BellRing className="h-4 w-4 mr-2 text-alert" />
-          Alert Log
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg flex items-center">
+            <BellRing className="h-4 w-4 mr-2 text-alert" />
+            Alert Log
+          </CardTitle>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefreshAlerts}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="p-0 pt-2">
         <ScrollArea className="h-[calc(100vh-280px)] md:h-[380px]">
