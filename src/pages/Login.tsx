@@ -39,7 +39,7 @@ const Login = () => {
               <ShieldCheck className="h-6 w-6 text-info absolute -bottom-1 -right-1" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Sentinel Camera System</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Detect Guard</h1>
           <p className="text-muted-foreground mt-2">
             Login to access the security monitoring dashboard
           </p>
@@ -62,7 +62,7 @@ const Login = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  placeholder="admin or operator"
+                  placeholder="Enter your username"
                 />
               </div>
               <div className="space-y-2">
@@ -73,7 +73,7 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="admin123 or operator123"
+                  placeholder="Enter your password"
                 />
               </div>
             </CardContent>
@@ -95,12 +95,6 @@ const Login = () => {
             </CardFooter>
           </form>
         </Card>
-
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          <p>Demo Accounts:</p>
-          <p>Admin: username="admin", password="admin123"</p>
-          <p>Operator: username="operator", password="operator123"</p>
-        </div>
       </div>
     </div>
   );

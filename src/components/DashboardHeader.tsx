@@ -24,7 +24,7 @@ const DashboardHeader: React.FC = () => {
               <ShieldCheck className="h-4 w-4 text-info absolute -bottom-1 -right-1" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold">Sentinel Camera System</h1>
+              <h1 className="text-xl font-semibold">Detect Guard</h1>
               <p className="text-xs text-muted-foreground">
                 {user?.role === "admin" ? "Admin Dashboard" : "Operator View"}
               </p>
