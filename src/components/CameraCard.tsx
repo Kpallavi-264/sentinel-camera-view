@@ -3,7 +3,8 @@ import React, { useRef, useEffect, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Camera, Power, PowerOff, RefreshCw, AlertTriangle } from "lucide-react";
-import { useCamera, CameraStatus } from "@/context/CameraContext";
+import { useCamera } from "@/context/CameraContext";
+import { CameraStatus } from "@/types/camera";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
