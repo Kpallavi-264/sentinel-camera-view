@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { Alert, Camera } from "@/types/camera";
 import { fetchAlerts } from "@/services/apiService";
+import { toast } from "sonner";
 
 export const useAlerts = (cameras: Camera[]) => {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [totalDetections, setTotalDetections] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Load alerts from the backend
   const loadAlerts = async () => {
+    setIsLoading(true);
     try {
       const apiAlerts = await fetchAlerts();
       
@@ -24,7 +27,10 @@ export const useAlerts = (cameras: Camera[]) => {
       setTotalDetections(formattedAlerts.length);
     } catch (error) {
       console.error("Failed to load alerts:", error);
-      // Keep the mock alerts if API fails
+      toast.error("Failed to load alerts");
+      // Keep existing alerts if API fails
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -42,18 +48,18 @@ export const useAlerts = (cameras: Camera[]) => {
 
   // Simulate periodic alerts for active cameras
   useEffect(() => {
-    const OBJECT_TYPES = ["Person", "Vehicle", "Animal", "Unknown"];
+    const SUSPICIOUS_OBJECTS = ["Knife", "Bat", "Rope"];
     
     const interval = setInterval(() => {
       const activeCameras = cameras.filter((cam) => cam.status === "active");
       
-      if (activeCameras.length > 0) {
+      if (activeCameras.length > 0 && Math.random() < 0.3) { // 30% chance of generating alert
         // Randomly select a camera to trigger an alert
         const randomIndex = Math.floor(Math.random() * activeCameras.length);
         const camera = activeCameras[randomIndex];
         
         // Random object type
-        const objectType = OBJECT_TYPES[Math.floor(Math.random() * OBJECT_TYPES.length)];
+        const objectType = SUSPICIOUS_OBJECTS[Math.floor(Math.random() * SUSPICIOUS_OBJECTS.length)];
         
         // Create a new alert
         const newAlert: Alert = {
@@ -77,6 +83,7 @@ export const useAlerts = (cameras: Camera[]) => {
     setAlerts,
     totalDetections,
     setTotalDetections,
-    loadAlerts
+    loadAlerts,
+    isLoading
   };
 };

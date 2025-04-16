@@ -56,5 +56,8 @@ export const initialCameras: Camera[] = [
   },
 ];
 
-// Mock object types for detection
+// Object types for detection
 export const OBJECT_TYPES = ["Person", "Vehicle", "Animal", "Unknown"];
+
+// Suspicious object types that should trigger alerts
+export const SUSPICIOUS_OBJECT_TYPES = ["Knife", "Bat", "Rope", "Gun"];

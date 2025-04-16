@@ -80,7 +80,7 @@ const CameraCard: React.FC<CameraCardProps> = ({ cameraId }) => {
   };
   
   return (
-    <Card className="overflow-hidden h-full flex flex-col">
+    <Card className={`overflow-hidden h-full flex flex-col ${camera.status === "alert" ? "border-destructive pulse-border" : ""}`}>
       <CardHeader className="space-y-0 p-4">
         <div className="flex justify-between items-center">
           <CardTitle className="text-base flex items-center">
@@ -89,7 +89,7 @@ const CameraCard: React.FC<CameraCardProps> = ({ cameraId }) => {
           </CardTitle>
           <div className={`status-indicator ${camera.status}`}>
             <div className="pulse-ring"></div>
-            {camera.status === "active" ? "Active" : camera.status === "alert" ? "Alert" : "Inactive"}
+            {camera.status === "active" ? "Active" : camera.status === "alert" ? "Alert!" : "Inactive"}
           </div>
         </div>
       </CardHeader>
@@ -101,7 +101,7 @@ const CameraCard: React.FC<CameraCardProps> = ({ cameraId }) => {
               autoPlay
               playsInline
               muted
-              className={camera.status === "alert" ? "border-2 border-alert animate-pulse" : ""}
+              className={camera.status === "alert" ? "border-2 border-destructive animate-pulse" : ""}
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-muted">
