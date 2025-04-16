@@ -72,8 +72,7 @@ export const initialCameras: Camera[] = [
 ];
 
 // Object types for detection
-export const OBJECT_TYPES = ["Person", "Vehicle", "Animal", "Unknown"];
+export const OBJECT_TYPES = ["Person", "Vehicle", "Animal", "Phone", "Unknown"];
 
 // Suspicious object types that should trigger alerts
 export const SUSPICIOUS_OBJECT_TYPES = ["Phone", "Bat", "Knife", "Rope", "Gun"];
-

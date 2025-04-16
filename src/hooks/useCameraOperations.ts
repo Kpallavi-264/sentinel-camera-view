@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Camera, CameraStatus } from "@/types/camera";
+import { Camera, CameraStatus, DetectedObject } from "@/types/camera";
 import { toast } from "sonner";
 import { sendImageForDetection } from "@/services/apiService";
 
@@ -148,10 +148,26 @@ export const useCameraOperations = ({
         
         // If detection found something suspicious
         if (detectionResult && detectionResult.detected) {
-          // Update camera status to alert
+          // Create detected object with bounding box
+          const detectedObject: DetectedObject = {
+            type: detectionResult.object_type || "Unknown",
+            confidence: detectionResult.confidence || 0.8,
+            boundingBox: detectionResult.bounding_box || {
+              x: 0.1,
+              y: 0.1,
+              width: 0.2,
+              height: 0.2
+            }
+          };
+          
+          // Update camera status to alert and add detected object
           setCameras((prev) =>
             prev.map((cam) =>
-              cam.id === cameraId ? { ...cam, status: "alert" as CameraStatus } : cam
+              cam.id === cameraId ? { 
+                ...cam, 
+                status: "alert" as CameraStatus,
+                detectedObjects: [detectedObject] 
+              } : cam
             )
           );
           
@@ -162,16 +178,21 @@ export const useCameraOperations = ({
             objectType: detectionResult.object_type || "Unknown",
             timestamp: new Date(),
             message: detectionResult.message || `Detected suspicious object at ${camera.name}`,
+            boundingBox: detectionResult.bounding_box,
           };
           
           setAlerts((prev) => [newAlert, ...prev].slice(0, 100)); // Keep only latest 100 alerts
           setTotalDetections((prev) => prev + 1);
           
-          // Set camera back to active after 5 seconds
+          // Set camera back to active after 5 seconds and clear detected objects
           setTimeout(() => {
             setCameras((prev) =>
               prev.map((cam) =>
-                cam.id === cameraId ? { ...cam, status: "active" as CameraStatus } : cam
+                cam.id === cameraId ? { 
+                  ...cam, 
+                  status: "active" as CameraStatus,
+                  detectedObjects: [] // Clear detected objects after alert
+                } : cam
               )
             );
           }, 5000);

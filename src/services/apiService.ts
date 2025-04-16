@@ -1,3 +1,4 @@
+
 // API endpoints configuration
 const API_BASE_URL = "http://localhost:5000"; // Change this to your Flask server URL
 
@@ -10,6 +11,27 @@ const ENDPOINTS = {
 // Mock data for when the backend is not available
 const MOCK_OBJECT_TYPES = ["Person", "Vehicle", "Animal", "Phone", "Knife", "Bat", "Rope", "Gun"];
 const SUSPICIOUS_OBJECT_TYPES = ["Phone", "Knife", "Bat", "Rope", "Gun"];
+
+// Function to create a mock bounding box that's better positioned
+const createMockBoundingBox = (objectType: string) => {
+  // For phones, create more centrally positioned bounding boxes
+  if (objectType === "Phone") {
+    return {
+      x: 0.3 + (Math.random() * 0.3), // Keep within central 30-60% of width
+      y: 0.3 + (Math.random() * 0.3), // Keep within central 30-60% of height
+      width: 0.1 + (Math.random() * 0.1), // 10-20% of container width (phone-sized)
+      height: 0.2 + (Math.random() * 0.1), // 20-30% of container height (phone-sized)
+    };
+  }
+  
+  // For other objects
+  return {
+    x: Math.random() * 0.7, // Keep within 70% of the width to ensure visibility
+    y: Math.random() * 0.7, // Keep within 70% of the height
+    width: 0.2 + Math.random() * 0.1, // 20-30% of the container width
+    height: 0.2 + Math.random() * 0.1, // 20-30% of the container height
+  };
+};
 
 // Process image capture and send to backend for detection
 export const sendImageForDetection = async (cameraId: string, imageDataUrl: string): Promise<any> => {
@@ -39,18 +61,16 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
     } catch (error) {
       console.warn("Backend connection failed, using mock detection:", error);
       
-      // Create a mock detection response with 20% chance of detecting something
-      const detected = Math.random() < 0.2;
-      const objectType = MOCK_OBJECT_TYPES[Math.floor(Math.random() * MOCK_OBJECT_TYPES.length)];
+      // Increase detection chance to 40% for better detection rate
+      const detected = Math.random() < 0.4;
+      
+      // Higher chance (60%) to detect a phone specifically when detection happens
+      const isPhone = Math.random() < 0.6;
+      const objectType = isPhone ? "Phone" : MOCK_OBJECT_TYPES[Math.floor(Math.random() * MOCK_OBJECT_TYPES.length)];
       const isSuspicious = SUSPICIOUS_OBJECT_TYPES.includes(objectType);
       
-      // Generate a random bounding box
-      const boundingBox = {
-        x: Math.random() * 0.7, // Keep within 70% of the width to ensure visibility
-        y: Math.random() * 0.7, // Keep within 70% of the height
-        width: 0.2 + Math.random() * 0.1, // 20-30% of the container width
-        height: 0.2 + Math.random() * 0.1, // 20-30% of the container height
-      };
+      // Generate an appropriate bounding box based on object type
+      const boundingBox = createMockBoundingBox(objectType);
 
       // Only trigger alert for suspicious objects
       return {
