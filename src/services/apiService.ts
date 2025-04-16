@@ -1,4 +1,3 @@
-
 // API endpoints configuration
 const API_BASE_URL = "http://localhost:5000"; // Change this to your Flask server URL
 
@@ -9,7 +8,8 @@ const ENDPOINTS = {
 };
 
 // Mock data for when the backend is not available
-const MOCK_OBJECT_TYPES = ["Person", "Vehicle", "Animal", "Knife", "Bat", "Rope"];
+const MOCK_OBJECT_TYPES = ["Person", "Vehicle", "Animal", "Phone", "Knife", "Bat", "Rope", "Gun"];
+const SUSPICIOUS_OBJECT_TYPES = ["Phone", "Knife", "Bat", "Rope", "Gun"];
 
 // Process image capture and send to backend for detection
 export const sendImageForDetection = async (cameraId: string, imageDataUrl: string): Promise<any> => {
@@ -39,19 +39,28 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
     } catch (error) {
       console.warn("Backend connection failed, using mock detection:", error);
       
-      // Create a mock detection response with 20% chance of detecting something suspicious
+      // Create a mock detection response with 20% chance of detecting something
       const detected = Math.random() < 0.2;
       const objectType = MOCK_OBJECT_TYPES[Math.floor(Math.random() * MOCK_OBJECT_TYPES.length)];
-      const isSuspicious = ["Knife", "Bat", "Rope"].includes(objectType);
+      const isSuspicious = SUSPICIOUS_OBJECT_TYPES.includes(objectType);
       
+      // Generate a random bounding box
+      const boundingBox = {
+        x: Math.random() * 0.7, // Keep within 70% of the width to ensure visibility
+        y: Math.random() * 0.7, // Keep within 70% of the height
+        width: 0.2 + Math.random() * 0.1, // 20-30% of the container width
+        height: 0.2 + Math.random() * 0.1, // 20-30% of the container height
+      };
+
       // Only trigger alert for suspicious objects
       return {
         detected: detected && isSuspicious,
         alert_id: detected && isSuspicious ? `alert-${Date.now()}` : null,
         object_type: detected ? objectType : null,
-        confidence: detected ? (0.7 + Math.random() * 0.3).toFixed(2) : 0,
+        confidence: detected ? (0.7 + Math.random() * 0.3) : 0,
         timestamp: new Date().toISOString(),
         message: detected && isSuspicious ? `Detected suspicious ${objectType} at Camera ${cameraId}` : null,
+        bounding_box: detected ? boundingBox : null,
       };
     }
   } catch (error) {

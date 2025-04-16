@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { useCamera } from "@/context/CameraContext";
 import { CameraStatus } from "@/types/camera";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import DetectionBox from "./DetectionBox";
 
 interface CameraCardProps {
   cameraId: string;
@@ -17,13 +17,14 @@ const CameraCard: React.FC<CameraCardProps> = ({ cameraId }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [lastUpdatedText, setLastUpdatedText] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  
+  const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const camera = cameras.find((cam) => cam.id === cameraId);
   
   useEffect(() => {
     if (!camera) return;
     
-    // Update the "last updated" text every minute
     const updateLastUpdatedText = () => {
       if (camera.lastUpdated) {
         setLastUpdatedText(formatDistanceToNow(camera.lastUpdated, { addSuffix: true }));
@@ -36,14 +37,12 @@ const CameraCard: React.FC<CameraCardProps> = ({ cameraId }) => {
     return () => clearInterval(interval);
   }, [camera]);
   
-  // Handle video stream connection and disconnection
   useEffect(() => {
     if (!camera || !videoRef.current) return;
     
     if (camera.stream && camera.status === "active") {
       videoRef.current.srcObject = camera.stream;
       
-      // Set up periodic image capture every 10 seconds
       const captureInterval = setInterval(async () => {
         try {
           setIsProcessing(true);
@@ -55,11 +54,26 @@ const CameraCard: React.FC<CameraCardProps> = ({ cameraId }) => {
       
       return () => clearInterval(captureInterval);
     } else if (camera.status !== "active" && videoRef.current.srcObject) {
-      // Clear the video element if camera is inactive
       videoRef.current.srcObject = null;
     }
   }, [camera, cameraId, captureImage]);
   
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        setContainerDimensions({
+          width: containerRef.current.offsetWidth,
+          height: containerRef.current.offsetHeight,
+        });
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
+
   if (!camera) return null;
   
   const handleToggleCamera = async () => {
@@ -98,21 +112,41 @@ const CameraCard: React.FC<CameraCardProps> = ({ cameraId }) => {
         </div>
       </CardHeader>
       <CardContent className="p-0 flex-grow relative">
-        <div className="camera-container">
+        <div className="camera-container relative" ref={containerRef}>
           {camera.status !== "inactive" ? (
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className={camera.status === "alert" ? "border-2 border-destructive animate-pulse" : ""}
-            />
+            <>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className={camera.status === "alert" ? "border-2 border-destructive animate-pulse" : ""}
+              />
+              {camera.detectedObjects?.map((obj, index) => (
+                <DetectionBox
+                  key={`${obj.type}-${index}`}
+                  object={obj}
+                  containerWidth={containerDimensions.width}
+                  containerHeight={containerDimensions.height}
+                />
+              ))}
+            </>
           ) : camera.lastImage ? (
-            <img 
-              src={camera.lastImage}
-              alt={`Last frame from ${camera.name}`}
-              className="w-full h-full object-cover"
-            />
+            <div className="relative">
+              <img 
+                src={camera.lastImage}
+                alt={`Last frame from ${camera.name}`}
+                className="w-full h-full object-cover"
+              />
+              {camera.detectedObjects?.map((obj, index) => (
+                <DetectionBox
+                  key={`${obj.type}-${index}`}
+                  object={obj}
+                  containerWidth={containerDimensions.width}
+                  containerHeight={containerDimensions.height}
+                />
+              ))}
+            </div>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-muted">
               <Camera className="h-12 w-12 text-muted-foreground opacity-50" />

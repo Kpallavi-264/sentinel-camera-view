@@ -9,6 +9,14 @@ export interface Alert {
   objectType: string;
   timestamp: Date;
   message: string;
+  boundingBox?: BoundingBox; // Optional because some older alerts might not have it
+}
+
+export interface BoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface Camera {
@@ -18,6 +26,13 @@ export interface Camera {
   stream: MediaStream | null;
   lastImage: string | null;
   lastUpdated: Date;
+  detectedObjects?: DetectedObject[]; // Add detected objects with bounding boxes
+}
+
+export interface DetectedObject {
+  type: string;
+  confidence: number;
+  boundingBox: BoundingBox;
 }
 
 // Initial camera setup
@@ -60,4 +75,5 @@ export const initialCameras: Camera[] = [
 export const OBJECT_TYPES = ["Person", "Vehicle", "Animal", "Unknown"];
 
 // Suspicious object types that should trigger alerts
-export const SUSPICIOUS_OBJECT_TYPES = ["Knife", "Bat", "Rope", "Gun"];
+export const SUSPICIOUS_OBJECT_TYPES = ["Phone", "Bat", "Knife", "Rope", "Gun"];
+
