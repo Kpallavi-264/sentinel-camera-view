@@ -8,7 +8,7 @@ import { useSystemUptime } from "@/hooks/useSystemUptime";
 interface CameraContextType {
   cameras: Camera[];
   alerts: Alert[];
-  startCamera: (cameraId: string) => void;
+  startCamera: (cameraId: string) => Promise<void>;
   stopCamera: (cameraId: string) => void;
   captureImage: (cameraId: string) => Promise<string | null>;
   totalDetections: number;
@@ -51,7 +51,7 @@ export const CameraProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       });
     };
-  }, [cameras]);
+  }, []);
 
   return (
     <CameraContext.Provider

@@ -36,6 +36,7 @@ const CameraCard: React.FC<CameraCardProps> = ({ cameraId }) => {
     return () => clearInterval(interval);
   }, [camera]);
   
+  // Handle video stream connection and disconnection
   useEffect(() => {
     if (!camera || !videoRef.current) return;
     
@@ -53,14 +54,17 @@ const CameraCard: React.FC<CameraCardProps> = ({ cameraId }) => {
       }, 10000);
       
       return () => clearInterval(captureInterval);
+    } else if (camera.status !== "active" && videoRef.current.srcObject) {
+      // Clear the video element if camera is inactive
+      videoRef.current.srcObject = null;
     }
   }, [camera, cameraId, captureImage]);
   
   if (!camera) return null;
   
-  const handleToggleCamera = () => {
+  const handleToggleCamera = async () => {
     if (camera.status === "inactive") {
-      startCamera(cameraId);
+      await startCamera(cameraId);
     } else {
       stopCamera(cameraId);
     }
@@ -102,6 +106,12 @@ const CameraCard: React.FC<CameraCardProps> = ({ cameraId }) => {
               playsInline
               muted
               className={camera.status === "alert" ? "border-2 border-destructive animate-pulse" : ""}
+            />
+          ) : camera.lastImage ? (
+            <img 
+              src={camera.lastImage}
+              alt={`Last frame from ${camera.name}`}
+              className="w-full h-full object-cover"
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-muted">

@@ -19,30 +19,43 @@ export const useCameraOperations = ({
 }: CameraOperationsProps) => {
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  // Track the current active camera stream for reuse
+  const [currentStream, setCurrentStream] = useState<MediaStream | null>(null);
 
   const startCamera = async (cameraId: string) => {
     try {
       const camera = cameras.find((cam) => cam.id === cameraId);
       if (!camera) return;
 
-      // Stop any existing stream
-      if (camera.stream) {
-        camera.stream.getTracks().forEach((track) => track.stop());
+      // Get or reuse a stream
+      let stream: MediaStream;
+      
+      // If we already have a stream active, clone it for the new camera
+      if (currentStream && currentStream.active) {
+        stream = currentStream;
+      } else {
+        // Request camera access if no stream exists
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+        setCurrentStream(stream);
       }
-
-      // Request camera access
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: false,
-      });
-
+      
+      // Create a clone of the track to use for this camera
+      const videoTrack = stream.getVideoTracks()[0];
+      if (!videoTrack) {
+        throw new Error("No video track available");
+      }
+      
+      // Update the camera status and add the stream
       setCameras((prev) =>
         prev.map((cam) =>
           cam.id === cameraId
             ? {
                 ...cam,
                 status: "active",
-                stream,
+                stream: stream,
                 lastUpdated: new Date(),
               }
             : cam
@@ -60,10 +73,6 @@ export const useCameraOperations = ({
     const camera = cameras.find((cam) => cam.id === cameraId);
     if (!camera) return;
 
-    if (camera.stream) {
-      camera.stream.getTracks().forEach((track) => track.stop());
-    }
-
     setCameras((prev) =>
       prev.map((cam) =>
         cam.id === cameraId
@@ -76,6 +85,16 @@ export const useCameraOperations = ({
           : cam
       )
     );
+
+    // Only stop the overall stream if no cameras are using it
+    const activeStreams = cameras.filter(
+      (cam) => cam.id !== cameraId && cam.status === "active"
+    );
+    
+    if (activeStreams.length === 0 && currentStream) {
+      currentStream.getTracks().forEach((track) => track.stop());
+      setCurrentStream(null);
+    }
 
     toast.info(`${camera.name} has been deactivated`);
   };
