@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DetectedObject } from '@/types/camera';
-import { Smartphone } from 'lucide-react';
+import { Smartphone, Knife, Gun } from 'lucide-react';
 
 interface DetectionBoxProps {
   object: DetectedObject;
@@ -23,6 +23,21 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
     top: `${boundingBox.y * containerHeight}px`,
     width: `${boundingBox.width * containerWidth}px`,
     height: `${boundingBox.height * containerHeight}px`,
+    pointerEvents: 'none', // Ensure the box doesn't interfere with clicks
+  };
+
+  // Select icon based on object type
+  const renderIcon = () => {
+    switch (type) {
+      case "Phone":
+        return <Smartphone className="h-3 w-3 mr-1" />;
+      case "Knife":
+        return <Knife className="h-3 w-3 mr-1" />;
+      case "Gun":
+        return <Gun className="h-3 w-3 mr-1" />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -37,7 +52,7 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
           isSuspicious ? 'bg-destructive text-destructive-foreground' : 'bg-yellow-400 text-yellow-950'
         }`}
       >
-        {type === "Phone" && <Smartphone className="h-3 w-3 mr-1" />}
+        {renderIcon()}
         {`${type} (${Math.round(confidence * 100)}%)`}
       </div>
     </div>
