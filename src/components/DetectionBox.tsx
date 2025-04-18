@@ -7,9 +7,9 @@ import {
   AlertTriangle, 
   AlertCircle, 
   Scissors,
-  Link2,
-  Briefcase,
-  Sword  // Replace Knife with Sword, which is more semantically similar to a weapon
+  Sword,  // For knife detection
+  Utensils, // For fork detection
+  Briefcase  // For bat detection
 } from 'lucide-react';
 
 interface DetectionBoxProps {
@@ -25,8 +25,8 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
 }) => {
   const { boundingBox, type, confidence } = object;
   
-  // Update the suspicious items list to include knife explicitly
-  const isSuspicious = ["person", "cell phone", "knife", "baseball bat", "tennis racket", "scissors", "sports ball", "tie", "handbag"].includes(type.toLowerCase());
+  // Update the suspicious items list to include knife and fork explicitly
+  const isSuspicious = ["person", "cell phone", "knife", "fork", "baseball bat", "tennis racket", "scissors", "sports ball"].includes(type.toLowerCase());
   
   // Get display name from mapping or use original type
   const displayType = DISPLAY_TYPE_MAPPING[type.toLowerCase() as keyof typeof DISPLAY_TYPE_MAPPING] || type;
@@ -48,13 +48,11 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
       case 'scissors':
         return <Scissors className="h-3 w-3 mr-1" />;
       case 'knife':
-        return <Sword className="h-3 w-3 mr-1" color="red" />; // Replaced Knife with Sword
+        return <Sword className="h-3 w-3 mr-1" color="red" />;
+      case 'fork':
+        return <Utensils className="h-3 w-3 mr-1" color="red" />; // Added fork icon
       case 'baseball bat':
-        return <AlertTriangle className="h-3 w-3 mr-1" color="orange" />;
-      case 'tie':
-        return <Link2 className="h-3 w-3 mr-1" />; // Rope
-      case 'handbag':
-        return <Briefcase className="h-3 w-3 mr-1" color="red" />; // Gun
+        return <Briefcase className="h-3 w-3 mr-1" color="orange" />;
       default:
         return <AlertTriangle className="h-3 w-3 mr-1" />;
     }

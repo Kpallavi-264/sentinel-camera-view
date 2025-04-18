@@ -71,7 +71,7 @@ export const initialCameras: Camera[] = [
   },
 ];
 
-// COCO dataset classes (80 classes in MS COCO dataset)
+// COCO dataset classes (80 classes in MS COCO dataset) - YOLO uses these same classes
 export const COCO_CLASSES = [
   'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 
   'boat', 'traffic light', 'fire hydrant', 'stop sign', 'parking meter', 'bench', 
@@ -87,38 +87,32 @@ export const COCO_CLASSES = [
   'hair drier', 'toothbrush'
 ];
 
-// Our target suspicious objects
+// Our target suspicious objects - updated to match YOLO classes
 export const TARGET_OBJECTS = [
   'knife',
-  'smartphone',
-  'rope',
-  'bat',
-  'gun',
+  'cell phone',
+  'fork',
+  'baseball bat',
   'scissors'
 ];
 
-// Update SUSPICIOUS_OBJECT_TYPES to match COCO dataset equivalents
-// Make sure knife is a top priority for detection
+// Update SUSPICIOUS_OBJECT_TYPES to match YOLO dataset classes
 export const SUSPICIOUS_OBJECT_TYPES = [
-  'knife',         // Direct COCO class - prioritized
-  'cell phone',    // COCO class for smartphone
-  'scissors',      // Direct COCO class
-  'baseball bat',  // COCO class for bat
-  'tie',           // closest COCO equivalent for rope
-  'handbag',       // temporary mapping for gun since gun isn't in COCO
+  'knife',         // Direct YOLO/COCO class - highest priority
+  'fork',          // Added fork as per requirement
+  'cell phone',    // YOLO/COCO class for smartphone
+  'scissors',      // Direct YOLO/COCO class
+  'baseball bat',  // YOLO/COCO class for bat
 ];
 
-// Mapping of target objects to their COCO equivalents
+// Mapping of display names to their COCO/YOLO equivalents
 export const OBJECT_TYPE_MAPPING = {
   'smartphone': 'cell phone',
   'cell phone': 'cell phone',
   'bat': 'baseball bat',
   'baseball bat': 'baseball bat',
-  'rope': 'tie', // closest COCO equivalent
-  'tie': 'tie',
-  'gun': 'handbag', // temporary mapping since gun isn't in COCO
-  'handbag': 'handbag',
-  'knife': 'knife',  // Direct match in COCO
+  'knife': 'knife',
+  'fork': 'fork',
   'scissors': 'scissors'
 };
 
@@ -127,7 +121,6 @@ export const DISPLAY_TYPE_MAPPING = {
   'cell phone': 'Smartphone',
   'scissors': 'Scissors',
   'knife': 'Knife',
+  'fork': 'Fork',
   'baseball bat': 'Bat',
-  'tie': 'Rope',
-  'handbag': 'Gun',
 };

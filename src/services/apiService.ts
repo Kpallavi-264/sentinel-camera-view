@@ -34,6 +34,13 @@ const createMockBoundingBox = (objectType: string) => {
         width: 0.06 + (Math.random() * 0.08),
         height: 0.25 + (Math.random() * 0.1),
       };
+    case 'fork':
+      return {
+        x: 0.25 + (Math.random() * 0.3),
+        y: 0.3 + (Math.random() * 0.3),
+        width: 0.05 + (Math.random() * 0.05),
+        height: 0.15 + (Math.random() * 0.1),
+      };
     case 'baseball bat': // Bat
       return {
         x: 0.1 + (Math.random() * 0.3),
@@ -91,21 +98,19 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
 
       return await response.json();
     } catch (error) {
-      console.warn("Backend connection failed, using mock detection:", error);
+      console.warn("Backend connection failed, using mock YOLO detection:", error);
       
-      // Enhanced mock detection with better probabilities for suspicious objects
+      // YOLO-inspired mock detection with better probabilities for suspicious objects
       // Higher detection rate makes sure we actually see objects
-      const detected = Math.random() < 0.85; // 85% detection rate
+      const detected = Math.random() < 0.9; // 90% detection rate
       
-      // Weighted random selection for suspicious objects to ensure we detect what we want
-      // Significantly boosted probability for knife detection
+      // Weighted random selection for suspicious objects based on YOLO classes
       const detectionProbabilities = {
-        'knife': 0.30,         // 30% chance - prioritized knife detection
-        'cell phone': 0.14,    // 14% chance - smartphone
-        'scissors': 0.14,      // 14% chance
-        'baseball bat': 0.14,  // 14% chance - bat
-        'tie': 0.14,           // 14% chance - rope
-        'handbag': 0.14        // 14% chance - gun
+        'knife': 0.35,         // 35% chance - highest priority
+        'fork': 0.15,          // 15% chance - new detection item
+        'cell phone': 0.15,    // 15% chance - smartphone
+        'scissors': 0.15,      // 15% chance
+        'baseball bat': 0.2,   // 20% chance - bat
       };
 
       let objectType = 'unknown';
@@ -121,20 +126,31 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
       }
 
       // Higher confidence range to make detections more convincing
-      const confidenceLevel = detected ? (0.75 + Math.random() * 0.2) : 0;
+      // This simulates YOLO's confidence values (0-1)
+      const confidenceLevel = detected ? (0.75 + Math.random() * 0.24) : 0;
       const boundingBox = createMockBoundingBox(objectType);
       
       // Get display name for the message
       const displayType = DISPLAY_TYPE_MAPPING[objectType.toLowerCase() as keyof typeof DISPLAY_TYPE_MAPPING] || objectType;
 
+      // Simulate the alert condition based on YOLO confidence threshold
+      // Only alert if confidence is above a certain threshold (0.75) and it's a suspicious item
+      const shouldTriggerAlert = detected && 
+        (confidenceLevel > 0.75) && 
+        ['knife', 'fork', 'scissors', 'baseball bat', 'cell phone'].includes(objectType);
+
+      if (shouldTriggerAlert) {
+        console.log(`YOLO-like detection: ${displayType} detected with ${Math.round(confidenceLevel * 100)}% confidence`);
+      }
+
       return {
-        detected: detected,
-        alert_id: detected ? `alert-${Date.now()}` : null,
-        object_type: detected ? objectType : null,
+        detected: shouldTriggerAlert,
+        alert_id: shouldTriggerAlert ? `alert-${Date.now()}` : null,
+        object_type: shouldTriggerAlert ? objectType : null,
         confidence: confidenceLevel,
         timestamp: new Date().toISOString(),
-        message: detected ? `Detected suspicious ${displayType} at Camera ${cameraId}` : null,
-        bounding_box: detected ? boundingBox : null,
+        message: shouldTriggerAlert ? `Alert: ${displayType} detected at Camera ${cameraId} (${Math.round(confidenceLevel * 100)}% confidence)` : null,
+        bounding_box: shouldTriggerAlert ? boundingBox : null,
       };
     }
   } catch (error) {
@@ -168,10 +184,13 @@ export const fetchAlerts = async (): Promise<any> => {
         
         const cameraId = `cam-${1 + Math.floor(Math.random() * 4)}`;
         
-        // Add more knives to the mock alerts
+        // Simulate YOLO-detected objects with higher probability for dangerous items
         const objectTypeDistribution = [
-          'knife', 'knife', 'knife', // Triple the chance of knives appearing
-          ...SUSPICIOUS_OBJECT_TYPES
+          'knife', 'knife', 'knife', 'knife', // 4x chance for knives
+          'fork', 'fork', // 2x chance for forks
+          'scissors', 'scissors', // 2x chance for scissors
+          'baseball bat', 'baseball bat', // 2x chance for bats
+          'cell phone', 'cell phone' // 2x chance for cell phones
         ];
         const objectType = objectTypeDistribution[Math.floor(Math.random() * objectTypeDistribution.length)];
         
@@ -183,8 +202,8 @@ export const fetchAlerts = async (): Promise<any> => {
           camera_id: cameraId,
           object_type: objectType,
           timestamp: timestamp.toISOString(),
-          confidence: (0.7 + Math.random() * 0.3).toFixed(2),
-          message: `Detected suspicious ${displayType} at Camera ${cameraId}`,
+          confidence: (0.75 + Math.random() * 0.24).toFixed(2),
+          message: `YOLO detected ${displayType} at Camera ${cameraId}`,
         });
       }
       
