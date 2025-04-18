@@ -98,13 +98,14 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
       const detected = Math.random() < 0.85; // 85% detection rate
       
       // Weighted random selection for suspicious objects to ensure we detect what we want
+      // Significantly boosted probability for knife detection
       const detectionProbabilities = {
-        'cell phone': 0.20,    // 20% chance - smartphone
-        'scissors': 0.16,      // 16% chance
-        'knife': 0.16,         // 16% chance
-        'baseball bat': 0.16,  // 16% chance - bat
-        'tie': 0.16,           // 16% chance - rope
-        'handbag': 0.16        // 16% chance - gun
+        'knife': 0.30,         // 30% chance - prioritized knife detection
+        'cell phone': 0.14,    // 14% chance - smartphone
+        'scissors': 0.14,      // 14% chance
+        'baseball bat': 0.14,  // 14% chance - bat
+        'tie': 0.14,           // 14% chance - rope
+        'handbag': 0.14        // 14% chance - gun
       };
 
       let objectType = 'unknown';
@@ -166,7 +167,13 @@ export const fetchAlerts = async (): Promise<any> => {
         timestamp.setMinutes(timestamp.getMinutes() - Math.floor(Math.random() * 60 * 24)); // Random time in last 24 hours
         
         const cameraId = `cam-${1 + Math.floor(Math.random() * 4)}`;
-        const objectType = SUSPICIOUS_OBJECT_TYPES[Math.floor(Math.random() * SUSPICIOUS_OBJECT_TYPES.length)];
+        
+        // Add more knives to the mock alerts
+        const objectTypeDistribution = [
+          'knife', 'knife', 'knife', // Triple the chance of knives appearing
+          ...SUSPICIOUS_OBJECT_TYPES
+        ];
+        const objectType = objectTypeDistribution[Math.floor(Math.random() * objectTypeDistribution.length)];
         
         // Get display name for the message
         const displayType = DISPLAY_TYPE_MAPPING[objectType.toLowerCase() as keyof typeof DISPLAY_TYPE_MAPPING] || objectType;

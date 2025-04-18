@@ -24,6 +24,8 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
   containerHeight 
 }) => {
   const { boundingBox, type, confidence } = object;
+  
+  // Update the suspicious items list to include knife explicitly
   const isSuspicious = ["person", "cell phone", "knife", "baseball bat", "tennis racket", "scissors", "sports ball", "tie", "handbag"].includes(type.toLowerCase());
   
   // Get display name from mapping or use original type

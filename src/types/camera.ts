@@ -98,10 +98,11 @@ export const TARGET_OBJECTS = [
 ];
 
 // Update SUSPICIOUS_OBJECT_TYPES to match COCO dataset equivalents
+// Make sure knife is a top priority for detection
 export const SUSPICIOUS_OBJECT_TYPES = [
+  'knife',         // Direct COCO class - prioritized
   'cell phone',    // COCO class for smartphone
   'scissors',      // Direct COCO class
-  'knife',         // Will be detected as "knife" in COCO
   'baseball bat',  // COCO class for bat
   'tie',           // closest COCO equivalent for rope
   'handbag',       // temporary mapping for gun since gun isn't in COCO
@@ -117,7 +118,7 @@ export const OBJECT_TYPE_MAPPING = {
   'tie': 'tie',
   'gun': 'handbag', // temporary mapping since gun isn't in COCO
   'handbag': 'handbag',
-  'knife': 'knife',
+  'knife': 'knife',  // Direct match in COCO
   'scissors': 'scissors'
 };
 
