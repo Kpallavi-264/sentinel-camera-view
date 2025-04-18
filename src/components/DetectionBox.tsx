@@ -9,7 +9,7 @@ import {
   Scissors,
   Link2,
   Briefcase,
-  Knife
+  Sword  // Replace Knife with Sword, which is more semantically similar to a weapon
 } from 'lucide-react';
 
 interface DetectionBoxProps {
@@ -46,7 +46,7 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
       case 'scissors':
         return <Scissors className="h-3 w-3 mr-1" />;
       case 'knife':
-        return <Knife className="h-3 w-3 mr-1" color="red" />;
+        return <Sword className="h-3 w-3 mr-1" color="red" />; // Replaced Knife with Sword
       case 'baseball bat':
         return <AlertTriangle className="h-3 w-3 mr-1" color="orange" />;
       case 'tie':
