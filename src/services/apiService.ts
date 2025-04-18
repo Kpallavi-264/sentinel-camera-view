@@ -8,14 +8,31 @@ const ENDPOINTS = {
   alerts: `${API_BASE_URL}/alerts`,
 };
 
-// Mock data for when the backend is not available
-const MOCK_OBJECT_TYPES = ["Person", "Vehicle", "Animal", "Phone", "Knife", "Bat", "Rope", "Gun"];
-const SUSPICIOUS_OBJECT_TYPES = ["Phone", "Knife", "Bat", "Rope", "Gun"];
+// COCO class names (80 classes in MS COCO dataset)
+const COCO_CLASSES = [
+  'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 
+  'boat', 'traffic light', 'fire hydrant', 'stop sign', 'parking meter', 'bench', 
+  'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 
+  'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 
+  'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 
+  'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup', 
+  'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange', 
+  'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch', 
+  'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 
+  'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink', 
+  'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 
+  'hair drier', 'toothbrush'
+];
+
+// Suspicious object types that should trigger alerts
+const SUSPICIOUS_OBJECT_TYPES = [
+  'cell phone', 'knife', 'baseball bat', 'tennis racket', 'scissors', 'sports ball'
+];
 
 // Function to create a mock bounding box that's better positioned
 const createMockBoundingBox = (objectType: string) => {
   // For phones, create more centrally positioned bounding boxes
-  if (objectType === "Phone") {
+  if (objectType === "cell phone") {
     return {
       x: 0.3 + (Math.random() * 0.3), // Keep within central 30-60% of width
       y: 0.3 + (Math.random() * 0.3), // Keep within central 30-60% of height
@@ -61,23 +78,32 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
     } catch (error) {
       console.warn("Backend connection failed, using mock detection:", error);
       
-      // Increase detection chance to 80% for much better detection rate
-      const detected = Math.random() < 0.8;
+      // Increase detection chance to 90% for much better detection rate
+      const detected = Math.random() < 0.9;
       
-      // Higher chance (80%) to detect a phone specifically when detection happens
-      const isPhone = Math.random() < 0.8;
-      const objectType = isPhone ? "Phone" : SUSPICIOUS_OBJECT_TYPES[Math.floor(Math.random() * SUSPICIOUS_OBJECT_TYPES.length)];
+      // 70% chance to detect a person, 20% for cell phone, 10% for other objects
+      const detectionType = Math.random();
+      let objectType;
+      
+      if (detectionType < 0.7) {
+        objectType = "person";
+      } else if (detectionType < 0.9) {
+        objectType = "cell phone";
+      } else {
+        // Pick a random COCO class from the suspicious list
+        objectType = SUSPICIOUS_OBJECT_TYPES[Math.floor(Math.random() * SUSPICIOUS_OBJECT_TYPES.length)];
+      }
+      
       const isSuspicious = SUSPICIOUS_OBJECT_TYPES.includes(objectType);
       
       // Generate an appropriate bounding box based on object type
       const boundingBox = createMockBoundingBox(objectType);
       
-      // Force detection every 2-3 attempts
+      // Set confidence level
       const confidenceLevel = detected ? (0.7 + Math.random() * 0.3) : 0;
 
-      // Always return a detected phone object with high confidence for testing
       return {
-        detected: detected && isSuspicious,
+        detected: detected,
         alert_id: detected && isSuspicious ? `alert-${Date.now()}` : null,
         object_type: detected ? objectType : null,
         confidence: confidenceLevel,
@@ -116,7 +142,7 @@ export const fetchAlerts = async (): Promise<any> => {
         timestamp.setMinutes(timestamp.getMinutes() - Math.floor(Math.random() * 60 * 24)); // Random time in last 24 hours
         
         const cameraId = `cam-${1 + Math.floor(Math.random() * 4)}`;
-        const objectType = ["Knife", "Bat", "Rope"][Math.floor(Math.random() * 3)];
+        const objectType = SUSPICIOUS_OBJECT_TYPES[Math.floor(Math.random() * SUSPICIOUS_OBJECT_TYPES.length)];
         
         mockAlerts.push({
           id: `mock-alert-${i}`,

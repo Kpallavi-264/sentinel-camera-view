@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DetectedObject } from '@/types/camera';
-import { Smartphone, AlertTriangle, AlertCircle } from 'lucide-react';
+import { Smartphone, AlertTriangle, AlertCircle, User, Car, Dog } from 'lucide-react';
 
 interface DetectionBoxProps {
   object: DetectedObject;
@@ -15,7 +15,7 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
   containerHeight 
 }) => {
   const { boundingBox, type, confidence } = object;
-  const isSuspicious = ["Phone", "Bat", "Knife", "Rope", "Gun"].includes(type);
+  const isSuspicious = ["person", "cell phone", "knife", "baseball bat", "tennis racket", "scissors", "sports ball"].includes(type.toLowerCase());
   
   // Convert bounding box to pixels
   const boxStyle: React.CSSProperties = {
@@ -28,14 +28,20 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
 
   // Select icon based on object type
   const renderIcon = () => {
-    switch (type) {
-      case "Phone":
-        return <Smartphone className="h-3 w-3 mr-1" />;
-      case "Knife":
-      case "Gun":
-        return <AlertCircle className="h-3 w-3 mr-1" />;
-      default:
-        return <AlertTriangle className="h-3 w-3 mr-1" />;
+    const lowerType = type.toLowerCase();
+    
+    if (lowerType.includes('phone') || lowerType === 'cell phone') {
+      return <Smartphone className="h-3 w-3 mr-1" />;
+    } else if (lowerType === 'person') {
+      return <User className="h-3 w-3 mr-1" />;
+    } else if (lowerType === 'car' || lowerType === 'truck') {
+      return <Car className="h-3 w-3 mr-1" />;
+    } else if (lowerType === 'dog' || lowerType === 'cat') {
+      return <Dog className="h-3 w-3 mr-1" />;
+    } else if (lowerType.includes('knife') || lowerType.includes('scissors') || lowerType.includes('bat')) {
+      return <AlertCircle className="h-3 w-3 mr-1" />;
+    } else {
+      return <AlertTriangle className="h-3 w-3 mr-1" />;
     }
   };
 
