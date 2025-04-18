@@ -18,8 +18,8 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <CameraProvider>
+        <CameraProvider>
+          <BrowserRouter>
             <Toaster />
             <Sonner />
             <Routes>
@@ -34,8 +34,8 @@ const App = () => (
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </CameraProvider>
-        </BrowserRouter>
+          </BrowserRouter>
+        </CameraProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
