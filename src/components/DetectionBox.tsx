@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DetectedObject } from '@/types/camera';
-import { Smartphone, Knife, Gun } from 'lucide-react';
+import { Smartphone, AlertTriangle, AlertCircle } from 'lucide-react';
 
 interface DetectionBoxProps {
   object: DetectedObject;
@@ -18,12 +18,12 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
   const isSuspicious = ["Phone", "Bat", "Knife", "Rope", "Gun"].includes(type);
   
   // Convert bounding box to pixels
-  const boxStyle = {
+  const boxStyle: React.CSSProperties = {
     left: `${boundingBox.x * containerWidth}px`,
     top: `${boundingBox.y * containerHeight}px`,
     width: `${boundingBox.width * containerWidth}px`,
     height: `${boundingBox.height * containerHeight}px`,
-    pointerEvents: 'none', // Ensure the box doesn't interfere with clicks
+    pointerEvents: 'none' as React.CSSProperties['pointerEvents'], // Ensure the box doesn't interfere with clicks
   };
 
   // Select icon based on object type
@@ -32,11 +32,10 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
       case "Phone":
         return <Smartphone className="h-3 w-3 mr-1" />;
       case "Knife":
-        return <Knife className="h-3 w-3 mr-1" />;
       case "Gun":
-        return <Gun className="h-3 w-3 mr-1" />;
+        return <AlertCircle className="h-3 w-3 mr-1" />;
       default:
-        return null;
+        return <AlertTriangle className="h-3 w-3 mr-1" />;
     }
   };
 
