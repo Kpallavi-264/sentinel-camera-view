@@ -1,4 +1,3 @@
-
 // API endpoints configuration
 const API_BASE_URL = "http://localhost:5000"; // Change this to your Flask server URL
 
@@ -29,25 +28,32 @@ const SUSPICIOUS_OBJECT_TYPES = [
   'cell phone', 'knife', 'baseball bat', 'tennis racket', 'scissors', 'sports ball'
 ];
 
-// Function to create a mock bounding box that's better positioned
+// Updated mock detection logic
 const createMockBoundingBox = (objectType: string) => {
-  // For phones, create more centrally positioned bounding boxes
-  if (objectType === "cell phone") {
-    return {
-      x: 0.3 + (Math.random() * 0.3), // Keep within central 30-60% of width
-      y: 0.3 + (Math.random() * 0.3), // Keep within central 30-60% of height
-      width: 0.1 + (Math.random() * 0.1), // 10-20% of container width (phone-sized)
-      height: 0.2 + (Math.random() * 0.1), // 20-30% of container height (phone-sized)
-    };
+  switch(objectType) {
+    case 'cell phone':
+      return {
+        x: 0.3 + (Math.random() * 0.3),
+        y: 0.3 + (Math.random() * 0.3),
+        width: 0.1 + (Math.random() * 0.1),
+        height: 0.2 + (Math.random() * 0.1),
+      };
+    case 'scissors':
+    case 'knife':
+      return {
+        x: 0.2 + (Math.random() * 0.4),
+        y: 0.2 + (Math.random() * 0.4),
+        width: 0.08 + (Math.random() * 0.08),
+        height: 0.15 + (Math.random() * 0.1),
+      };
+    default:
+      return {
+        x: Math.random() * 0.7,
+        y: Math.random() * 0.7,
+        width: 0.2 + Math.random() * 0.1,
+        height: 0.2 + Math.random() * 0.1,
+      };
   }
-  
-  // For other objects
-  return {
-    x: Math.random() * 0.7, // Keep within 70% of the width to ensure visibility
-    y: Math.random() * 0.7, // Keep within 70% of the height
-    width: 0.2 + Math.random() * 0.1, // 20-30% of the container width
-    height: 0.2 + Math.random() * 0.1, // 20-30% of the container height
-  };
 };
 
 // Process image capture and send to backend for detection
@@ -78,37 +84,41 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
     } catch (error) {
       console.warn("Backend connection failed, using mock detection:", error);
       
-      // Increase detection chance to 90% for much better detection rate
-      const detected = Math.random() < 0.9;
+      // Enhanced mock detection with better probabilities for suspicious objects
+      const detected = Math.random() < 0.85; // 85% detection rate
       
-      // 70% chance to detect a person, 20% for cell phone, 10% for other objects
-      const detectionType = Math.random();
-      let objectType;
-      
-      if (detectionType < 0.7) {
-        objectType = "person";
-      } else if (detectionType < 0.9) {
-        objectType = "cell phone";
-      } else {
-        // Pick a random COCO class from the suspicious list
-        objectType = SUSPICIOUS_OBJECT_TYPES[Math.floor(Math.random() * SUSPICIOUS_OBJECT_TYPES.length)];
+      // Weighted random selection for suspicious objects
+      const detectionProbabilities = {
+        'cell phone': 0.25,    // 25% chance
+        'scissors': 0.15,      // 15% chance
+        'knife': 0.15,         // 15% chance
+        'baseball bat': 0.15,  // 15% chance
+        'tie': 0.15,          // 15% chance for rope equivalent
+        'handbag': 0.15       // 15% chance for gun equivalent
+      };
+
+      let objectType = 'unknown';
+      const rand = Math.random();
+      let cumulative = 0;
+
+      for (const [type, prob] of Object.entries(detectionProbabilities)) {
+        cumulative += prob;
+        if (rand < cumulative) {
+          objectType = type;
+          break;
+        }
       }
-      
-      const isSuspicious = SUSPICIOUS_OBJECT_TYPES.includes(objectType);
-      
-      // Generate an appropriate bounding box based on object type
+
+      const confidenceLevel = detected ? (0.75 + Math.random() * 0.2) : 0; // Higher confidence range
       const boundingBox = createMockBoundingBox(objectType);
-      
-      // Set confidence level
-      const confidenceLevel = detected ? (0.7 + Math.random() * 0.3) : 0;
 
       return {
         detected: detected,
-        alert_id: detected && isSuspicious ? `alert-${Date.now()}` : null,
+        alert_id: detected ? `alert-${Date.now()}` : null,
         object_type: detected ? objectType : null,
         confidence: confidenceLevel,
         timestamp: new Date().toISOString(),
-        message: detected && isSuspicious ? `Detected suspicious ${objectType} at Camera ${cameraId}` : null,
+        message: detected ? `Detected suspicious ${objectType} at Camera ${cameraId}` : null,
         bounding_box: detected ? boundingBox : null,
       };
     }

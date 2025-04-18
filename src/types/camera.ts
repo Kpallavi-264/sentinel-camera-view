@@ -1,4 +1,3 @@
-
 // Common types for the camera system
 
 export type CameraStatus = "active" | "alert" | "inactive";
@@ -87,7 +86,20 @@ export const COCO_CLASSES = [
   'hair drier', 'toothbrush'
 ];
 
-// Suspicious object types that should trigger alerts
+// Update SUSPICIOUS_OBJECT_TYPES to match COCO dataset equivalents
 export const SUSPICIOUS_OBJECT_TYPES = [
-  'cell phone', 'knife', 'baseball bat', 'tennis racket', 'scissors', 'sports ball'
+  'cell phone', // COCO class for smartphone
+  'scissors',   // Direct COCO class
+  'knife',      // Will be detected as "knife" in COCO
+  'baseball bat', // COCO class for bat
 ];
+
+// Mapping of target objects to their COCO equivalents
+export const OBJECT_TYPE_MAPPING = {
+  'smartphone': 'cell phone',
+  'bat': 'baseball bat',
+  'rope': 'tie', // closest COCO equivalent
+  'gun': 'handbag', // temporary mapping since gun isn't in COCO
+  'knife': 'knife',
+  'scissors': 'scissors'
+};

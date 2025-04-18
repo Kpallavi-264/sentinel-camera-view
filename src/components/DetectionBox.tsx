@@ -1,7 +1,13 @@
-
 import React from 'react';
 import { DetectedObject } from '@/types/camera';
-import { Smartphone, AlertTriangle, AlertCircle, User, Car, Dog } from 'lucide-react';
+import { 
+  Smartphone, 
+  AlertTriangle, 
+  AlertCircle, 
+  Scissors,
+  Link2,
+  Briefcase
+} from 'lucide-react';
 
 interface DetectionBoxProps {
   object: DetectedObject;
@@ -17,31 +23,34 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
   const { boundingBox, type, confidence } = object;
   const isSuspicious = ["person", "cell phone", "knife", "baseball bat", "tennis racket", "scissors", "sports ball"].includes(type.toLowerCase());
   
-  // Convert bounding box to pixels
   const boxStyle: React.CSSProperties = {
     left: `${boundingBox.x * containerWidth}px`,
     top: `${boundingBox.y * containerHeight}px`,
     width: `${boundingBox.width * containerWidth}px`,
     height: `${boundingBox.height * containerHeight}px`,
-    pointerEvents: 'none' as React.CSSProperties['pointerEvents'], // Ensure the box doesn't interfere with clicks
+    pointerEvents: 'none' as React.CSSProperties['pointerEvents'],
   };
 
-  // Select icon based on object type
   const renderIcon = () => {
-    const lowerType = type.toLowerCase();
+    const lowerType = object.type.toLowerCase();
     
-    if (lowerType.includes('phone') || lowerType === 'cell phone') {
-      return <Smartphone className="h-3 w-3 mr-1" />;
-    } else if (lowerType === 'person') {
-      return <User className="h-3 w-3 mr-1" />;
-    } else if (lowerType === 'car' || lowerType === 'truck') {
-      return <Car className="h-3 w-3 mr-1" />;
-    } else if (lowerType === 'dog' || lowerType === 'cat') {
-      return <Dog className="h-3 w-3 mr-1" />;
-    } else if (lowerType.includes('knife') || lowerType.includes('scissors') || lowerType.includes('bat')) {
-      return <AlertCircle className="h-3 w-3 mr-1" />;
-    } else {
-      return <AlertTriangle className="h-3 w-3 mr-1" />;
+    switch(lowerType) {
+      case 'cell phone':
+      case 'smartphone':
+        return <Smartphone className="h-3 w-3 mr-1" />;
+      case 'scissors':
+        return <Scissors className="h-3 w-3 mr-1" />;
+      case 'knife':
+        return <AlertCircle className="h-3 w-3 mr-1" color="red" />;
+      case 'baseball bat':
+      case 'bat':
+        return <AlertTriangle className="h-3 w-3 mr-1" color="orange" />;
+      case 'tie':
+        return <Link2 className="h-3 w-3 mr-1" />;
+      case 'handbag':
+        return <Briefcase className="h-3 w-3 mr-1" color="red" />;
+      default:
+        return <AlertTriangle className="h-3 w-3 mr-1" />;
     }
   };
 
