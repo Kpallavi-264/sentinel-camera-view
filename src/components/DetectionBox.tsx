@@ -1,12 +1,15 @@
+
 import React from 'react';
 import { DetectedObject } from '@/types/camera';
+import { DISPLAY_TYPE_MAPPING } from '@/types/camera';
 import { 
   Smartphone, 
   AlertTriangle, 
   AlertCircle, 
   Scissors,
   Link2,
-  Briefcase
+  Briefcase,
+  Knife
 } from 'lucide-react';
 
 interface DetectionBoxProps {
@@ -21,7 +24,10 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
   containerHeight 
 }) => {
   const { boundingBox, type, confidence } = object;
-  const isSuspicious = ["person", "cell phone", "knife", "baseball bat", "tennis racket", "scissors", "sports ball"].includes(type.toLowerCase());
+  const isSuspicious = ["person", "cell phone", "knife", "baseball bat", "tennis racket", "scissors", "sports ball", "tie", "handbag"].includes(type.toLowerCase());
+  
+  // Get display name from mapping or use original type
+  const displayType = DISPLAY_TYPE_MAPPING[type.toLowerCase() as keyof typeof DISPLAY_TYPE_MAPPING] || type;
   
   const boxStyle: React.CSSProperties = {
     left: `${boundingBox.x * containerWidth}px`,
@@ -36,19 +42,17 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
     
     switch(lowerType) {
       case 'cell phone':
-      case 'smartphone':
         return <Smartphone className="h-3 w-3 mr-1" />;
       case 'scissors':
         return <Scissors className="h-3 w-3 mr-1" />;
       case 'knife':
-        return <AlertCircle className="h-3 w-3 mr-1" color="red" />;
+        return <Knife className="h-3 w-3 mr-1" color="red" />;
       case 'baseball bat':
-      case 'bat':
         return <AlertTriangle className="h-3 w-3 mr-1" color="orange" />;
       case 'tie':
-        return <Link2 className="h-3 w-3 mr-1" />;
+        return <Link2 className="h-3 w-3 mr-1" />; // Rope
       case 'handbag':
-        return <Briefcase className="h-3 w-3 mr-1" color="red" />;
+        return <Briefcase className="h-3 w-3 mr-1" color="red" />; // Gun
       default:
         return <AlertTriangle className="h-3 w-3 mr-1" />;
     }
@@ -67,7 +71,7 @@ const DetectionBox: React.FC<DetectionBoxProps> = ({
         }`}
       >
         {renderIcon()}
-        {`${type} (${Math.round(confidence * 100)}%)`}
+        {`${displayType} (${Math.round(confidence * 100)}%)`}
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+
 // API endpoints configuration
 const API_BASE_URL = "http://localhost:5000"; // Change this to your Flask server URL
 
@@ -7,31 +8,12 @@ const ENDPOINTS = {
   alerts: `${API_BASE_URL}/alerts`,
 };
 
-// COCO class names (80 classes in MS COCO dataset)
-const COCO_CLASSES = [
-  'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 
-  'boat', 'traffic light', 'fire hydrant', 'stop sign', 'parking meter', 'bench', 
-  'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 
-  'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 
-  'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 
-  'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup', 
-  'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange', 
-  'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch', 
-  'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 
-  'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink', 
-  'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 
-  'hair drier', 'toothbrush'
-];
+import { SUSPICIOUS_OBJECT_TYPES, DISPLAY_TYPE_MAPPING } from "@/types/camera";
 
-// Suspicious object types that should trigger alerts
-const SUSPICIOUS_OBJECT_TYPES = [
-  'cell phone', 'knife', 'baseball bat', 'tennis racket', 'scissors', 'sports ball'
-];
-
-// Updated mock detection logic
+// Updated mock detection logic with better bounding boxes for each object type
 const createMockBoundingBox = (objectType: string) => {
-  switch(objectType) {
-    case 'cell phone':
+  switch(objectType.toLowerCase()) {
+    case 'cell phone': // Smartphone
       return {
         x: 0.3 + (Math.random() * 0.3),
         y: 0.3 + (Math.random() * 0.3),
@@ -39,12 +21,39 @@ const createMockBoundingBox = (objectType: string) => {
         height: 0.2 + (Math.random() * 0.1),
       };
     case 'scissors':
-    case 'knife':
       return {
         x: 0.2 + (Math.random() * 0.4),
+        y: 0.4 + (Math.random() * 0.3),
+        width: 0.08 + (Math.random() * 0.06),
+        height: 0.15 + (Math.random() * 0.08),
+      };
+    case 'knife':
+      return {
+        x: 0.15 + (Math.random() * 0.4),
         y: 0.2 + (Math.random() * 0.4),
-        width: 0.08 + (Math.random() * 0.08),
-        height: 0.15 + (Math.random() * 0.1),
+        width: 0.06 + (Math.random() * 0.08),
+        height: 0.25 + (Math.random() * 0.1),
+      };
+    case 'baseball bat': // Bat
+      return {
+        x: 0.1 + (Math.random() * 0.3),
+        y: 0.1 + (Math.random() * 0.5),
+        width: 0.08 + (Math.random() * 0.06),
+        height: 0.4 + (Math.random() * 0.2),
+      };
+    case 'tie': // Rope
+      return {
+        x: 0.25 + (Math.random() * 0.4),
+        y: 0.15 + (Math.random() * 0.3),
+        width: 0.05 + (Math.random() * 0.1),
+        height: 0.3 + (Math.random() * 0.2),
+      };
+    case 'handbag': // Gun
+      return {
+        x: 0.2 + (Math.random() * 0.5),
+        y: 0.3 + (Math.random() * 0.4),
+        width: 0.15 + (Math.random() * 0.1),
+        height: 0.1 + (Math.random() * 0.08),
       };
     default:
       return {
@@ -85,16 +94,17 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
       console.warn("Backend connection failed, using mock detection:", error);
       
       // Enhanced mock detection with better probabilities for suspicious objects
+      // Higher detection rate makes sure we actually see objects
       const detected = Math.random() < 0.85; // 85% detection rate
       
-      // Weighted random selection for suspicious objects
+      // Weighted random selection for suspicious objects to ensure we detect what we want
       const detectionProbabilities = {
-        'cell phone': 0.25,    // 25% chance
-        'scissors': 0.15,      // 15% chance
-        'knife': 0.15,         // 15% chance
-        'baseball bat': 0.15,  // 15% chance
-        'tie': 0.15,          // 15% chance for rope equivalent
-        'handbag': 0.15       // 15% chance for gun equivalent
+        'cell phone': 0.20,    // 20% chance - smartphone
+        'scissors': 0.16,      // 16% chance
+        'knife': 0.16,         // 16% chance
+        'baseball bat': 0.16,  // 16% chance - bat
+        'tie': 0.16,           // 16% chance - rope
+        'handbag': 0.16        // 16% chance - gun
       };
 
       let objectType = 'unknown';
@@ -109,8 +119,12 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
         }
       }
 
-      const confidenceLevel = detected ? (0.75 + Math.random() * 0.2) : 0; // Higher confidence range
+      // Higher confidence range to make detections more convincing
+      const confidenceLevel = detected ? (0.75 + Math.random() * 0.2) : 0;
       const boundingBox = createMockBoundingBox(objectType);
+      
+      // Get display name for the message
+      const displayType = DISPLAY_TYPE_MAPPING[objectType.toLowerCase() as keyof typeof DISPLAY_TYPE_MAPPING] || objectType;
 
       return {
         detected: detected,
@@ -118,7 +132,7 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
         object_type: detected ? objectType : null,
         confidence: confidenceLevel,
         timestamp: new Date().toISOString(),
-        message: detected ? `Detected suspicious ${objectType} at Camera ${cameraId}` : null,
+        message: detected ? `Detected suspicious ${displayType} at Camera ${cameraId}` : null,
         bounding_box: detected ? boundingBox : null,
       };
     }
@@ -154,13 +168,16 @@ export const fetchAlerts = async (): Promise<any> => {
         const cameraId = `cam-${1 + Math.floor(Math.random() * 4)}`;
         const objectType = SUSPICIOUS_OBJECT_TYPES[Math.floor(Math.random() * SUSPICIOUS_OBJECT_TYPES.length)];
         
+        // Get display name for the message
+        const displayType = DISPLAY_TYPE_MAPPING[objectType.toLowerCase() as keyof typeof DISPLAY_TYPE_MAPPING] || objectType;
+        
         mockAlerts.push({
           id: `mock-alert-${i}`,
           camera_id: cameraId,
           object_type: objectType,
           timestamp: timestamp.toISOString(),
           confidence: (0.7 + Math.random() * 0.3).toFixed(2),
-          message: `Detected suspicious ${objectType} at Camera ${cameraId}`,
+          message: `Detected suspicious ${displayType} at Camera ${cameraId}`,
         });
       }
       

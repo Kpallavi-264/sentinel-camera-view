@@ -1,3 +1,4 @@
+
 // Common types for the camera system
 
 export type CameraStatus = "active" | "alert" | "inactive";
@@ -86,20 +87,46 @@ export const COCO_CLASSES = [
   'hair drier', 'toothbrush'
 ];
 
+// Our target suspicious objects
+export const TARGET_OBJECTS = [
+  'knife',
+  'smartphone',
+  'rope',
+  'bat',
+  'gun',
+  'scissors'
+];
+
 // Update SUSPICIOUS_OBJECT_TYPES to match COCO dataset equivalents
 export const SUSPICIOUS_OBJECT_TYPES = [
-  'cell phone', // COCO class for smartphone
-  'scissors',   // Direct COCO class
-  'knife',      // Will be detected as "knife" in COCO
-  'baseball bat', // COCO class for bat
+  'cell phone',    // COCO class for smartphone
+  'scissors',      // Direct COCO class
+  'knife',         // Will be detected as "knife" in COCO
+  'baseball bat',  // COCO class for bat
+  'tie',           // closest COCO equivalent for rope
+  'handbag',       // temporary mapping for gun since gun isn't in COCO
 ];
 
 // Mapping of target objects to their COCO equivalents
 export const OBJECT_TYPE_MAPPING = {
   'smartphone': 'cell phone',
+  'cell phone': 'cell phone',
   'bat': 'baseball bat',
+  'baseball bat': 'baseball bat',
   'rope': 'tie', // closest COCO equivalent
+  'tie': 'tie',
   'gun': 'handbag', // temporary mapping since gun isn't in COCO
+  'handbag': 'handbag',
   'knife': 'knife',
   'scissors': 'scissors'
+};
+
+// Reverse mapping to display our desired terms to users
+export const DISPLAY_TYPE_MAPPING = {
+  'cell phone': 'Smartphone',
+  'scissors': 'Scissors',
+  'knife': 'Knife',
+  'baseball bat': 'Bat',
+  'tie': 'Rope',
+  'handbag': 'Gun',
 };
