@@ -148,8 +148,8 @@ export const useCameraOperations = ({
         
         // If detection found something suspicious
         if (detectionResult && detectionResult.detected) {
-          // Create detected object with bounding box
-          const detectedObject: DetectedObject = {
+          // Handle main detection that triggered the alert
+          const mainDetection: DetectedObject = {
             type: detectionResult.object_type || "Unknown",
             confidence: detectionResult.confidence || 0.8,
             boundingBox: detectionResult.bounding_box || {
@@ -160,13 +160,20 @@ export const useCameraOperations = ({
             }
           };
           
-          // Update camera status to alert and add detected object
+          // Handle all detections (if available)
+          let allDetections = [mainDetection];
+          
+          if (detectionResult.all_detections && Array.isArray(detectionResult.all_detections)) {
+            allDetections = detectionResult.all_detections;
+          }
+          
+          // Update camera status to alert and add detected objects
           setCameras((prev) =>
             prev.map((cam) =>
               cam.id === cameraId ? { 
                 ...cam, 
                 status: "alert" as CameraStatus,
-                detectedObjects: [detectedObject] 
+                detectedObjects: allDetections 
               } : cam
             )
           );

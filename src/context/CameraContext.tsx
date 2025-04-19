@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Camera, Alert, initialCameras } from "@/types/camera";
+import { Camera, Alert, initialCameras, DetectedObject } from "@/types/camera";
 import { useCameraOperations } from "@/hooks/useCameraOperations";
 import { useAlerts } from "@/hooks/useAlerts";
 import { useSystemUptime } from "@/hooks/useSystemUptime";

@@ -1,6 +1,6 @@
 
 // API endpoints configuration
-const API_BASE_URL = "http://localhost:5000"; // Change this to your Flask server URL
+const API_BASE_URL = "http://localhost:5000"; // Python Flask server URL
 
 // API endpoints
 const ENDPOINTS = {
@@ -79,7 +79,8 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
     const base64Data = imageDataUrl.split(',')[1];
     
     try {
-      // Try to connect to the real backend first
+      console.log("Sending image to detection server...");
+      // Try to connect to the Python backend
       const response = await fetch(ENDPOINTS.detect, {
         method: 'POST',
         headers: {
@@ -96,7 +97,9 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
         throw new Error(`API error: ${response.status}`);
       }
 
-      return await response.json();
+      const result = await response.json();
+      console.log("Detection result:", result);
+      return result;
     } catch (error) {
       console.warn("Backend connection failed, using mock YOLO detection:", error);
       
@@ -106,11 +109,11 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
       
       // Weighted random selection for suspicious objects based on YOLO classes
       const detectionProbabilities = {
-        'knife': 0.35,         // 35% chance - highest priority
+        'knife': 0.40,         // 40% chance - highest priority
         'fork': 0.15,          // 15% chance - new detection item
         'cell phone': 0.15,    // 15% chance - smartphone
         'scissors': 0.15,      // 15% chance
-        'baseball bat': 0.2,   // 20% chance - bat
+        'baseball bat': 0.15,   // 15% chance - bat
       };
 
       let objectType = 'unknown';

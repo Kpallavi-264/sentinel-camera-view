@@ -7,9 +7,9 @@ import {
   AlertTriangle, 
   AlertCircle, 
   Scissors,
-  Sword,  // For knife detection
-  Utensils, // For fork detection
-  Briefcase  // For bat detection
+  Sword,
+  Utensils,
+  Briefcase
 } from 'lucide-react';
 
 interface DetectionBoxProps {
