@@ -9,6 +9,7 @@ const ENDPOINTS = {
 };
 
 import { SUSPICIOUS_OBJECT_TYPES, DISPLAY_TYPE_MAPPING } from "@/types/camera";
+import { toast } from "sonner";
 
 // Updated mock detection logic with better bounding boxes for each object type
 const createMockBoundingBox = (objectType: string) => {
@@ -102,6 +103,10 @@ export const sendImageForDetection = async (cameraId: string, imageDataUrl: stri
       return result;
     } catch (error) {
       console.warn("Backend connection failed, using mock YOLO detection:", error);
+      toast.warning("Detection server not connected. Using mock detection mode.", {
+        description: "Start the Python backend for accurate detection",
+        duration: 5000,
+      });
       
       // YOLO-inspired mock detection with better probabilities for suspicious objects
       // Higher detection rate makes sure we actually see objects
